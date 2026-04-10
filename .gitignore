@@ -1,0 +1,9 @@
+build/
+build_*/
+cmake-build-*/
+*.o
+*.so
+*.a
+moc_*
+*.user
+VTUViewer_autogen/
