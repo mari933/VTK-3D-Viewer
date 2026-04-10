@@ -1,0 +1,4 @@
+/home/isaiasbr/VTUViewer/build/CMakeFiles/VTUViewer.dir
+/home/isaiasbr/VTUViewer/build/CMakeFiles/edit_cache.dir
+/home/isaiasbr/VTUViewer/build/CMakeFiles/rebuild_cache.dir
+/home/isaiasbr/VTUViewer/build/CMakeFiles/VTUViewer_autogen.dir

@@ -136,63 +136,31 @@ void MainWindow::updateColoring()
     vtkDataArray* arr = reader->GetOutput()->GetPointData()->GetArray(currentArrayName.toStdString().c_str());
     if (!arr) return;
     
-    int compIndex = componentCombo->currentIndex();
-    int numComp = arr->GetNumberOfComponents();
+    const int compIndex = componentCombo->currentIndex();
+    const int numComp = arr->GetNumberOfComponents();
     
     lut = vtkSmartPointer<vtkLookupTable>::New();
     lut->SetNumberOfColors(256);
+    lut->SetHueRange(0.0, 0.667);
     lut->Build();
     
     double range[2];
     
-    if (compIndex == 0 && numComp > 1) {
-        vtkIdType n = arr->GetNumberOfTuples();
-        double minMag = 1e10, maxMag = -1e10;
-        for (vtkIdType i = 0; i < n; i++) {
-            double mag = 0;
-            for (int j = 0; j < numComp; j++) {
-                double v = arr->GetComponent(i, j);
-                mag += v * v;
-            }
-            mag = sqrt(mag);
-            if (mag < minMag) minMag = mag;
-            if (mag > maxMag) maxMag = mag;
-        }
-        range[0] = minMag;
-        range[1] = maxMag;
-        
-        vtkSmartPointer<vtkDoubleArray> magArr = vtkSmartPointer<vtkDoubleArray>::New();
-        magArr->SetName("Magnitude");
-        magArr->SetNumberOfTuples(n);
-        for (vtkIdType i = 0; i < n; i++) {
-            double mag = 0;
-            for (int j = 0; j < numComp; j++) {
-                double v = arr->GetComponent(i, j);
-                mag += v * v;
-            }
-            mag = sqrt(mag);
-            magArr->SetValue(i, mag);
-        }
-        
-        mapper->SetScalarVisibility(true);
-        mapper->SetScalarRange(range);
-        mapper->SetScalarModeToUsePointFieldData();
-        mapper->SelectColorArray("Magnitude");
-        mapper->SetLookupTable(lut);
-        reader->GetOutput()->GetPointData()->AddArray(magArr);
+    int vtkComponent = 0;
+    if (numComp > 1 && compIndex == 0) {
+        vtkComponent = -1;
+        arr->GetRange(range, -1);
     } else {
-        int comp = compIndex;
-        if (numComp == 1) comp = 0;
-        else if (compIndex > 0) comp = compIndex - 1;
-        
-        arr->GetRange(range, comp);
-        mapper->SetScalarVisibility(true);
-        mapper->SetScalarRange(range);
-        mapper->SetScalarModeToUsePointFieldData();
-        mapper->SelectColorArray(currentArrayName.toStdString().c_str());
-        mapper->SetArrayId(comp);
-        mapper->SetLookupTable(lut);
+        vtkComponent = (numComp == 1) ? 0 : (compIndex - 1);
+        arr->GetRange(range, vtkComponent);
     }
+
+    mapper->SetScalarVisibility(true);
+    mapper->SetScalarModeToUsePointFieldData();
+    mapper->SelectColorArray(currentArrayName.toStdString().c_str());
+    mapper->ColorByArrayComponent(currentArrayName.toStdString().c_str(), vtkComponent);
+    mapper->SetScalarRange(range);
+    mapper->SetLookupTable(lut);
     
     if (scalarBar) renderer->RemoveActor(scalarBar);
     scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
